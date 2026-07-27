@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Logowanie - HorseOwner</title>
+</head>
+<body>
+    <h2>Zaloguj się do systemu</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Zaloguj</button>
+    </form>
+</body>
+</html>
