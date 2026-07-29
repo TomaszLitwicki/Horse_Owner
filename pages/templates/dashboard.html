@@ -5,9 +5,13 @@
     <title>Dashboard</title>
 </head>
 <body>
-    <h1>Dashboard</h1>
+    <h1>Dashboard Horse Owner</h1>
     <h2>Panel użytkownika</h2>
-    <p>Witaj, {{ user.username }}!</p>
+    <p>Witaj {{ user.username }}!</p>
     <p>Twój numer ID to: {{ user.id }}</p>
+    <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" id="logout_button">Wyloguj</button>
+    </form>
 </body>
 </html>

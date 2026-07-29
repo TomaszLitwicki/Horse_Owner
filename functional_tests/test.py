@@ -3,6 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.contrib.auth.models import User
+import time
 
 class NewVisitorTest(LiveServerTestCase):
     def setUp(self):
@@ -40,15 +41,27 @@ class LoginTest(BaseLiveServerTestCase):
         self.browser.get(self.live_server_url + '/accounts/login/')
         user_name_input = self.browser.find_element(By.ID, "id_username")
         user_password_input = self.browser.find_element(By.ID, "id_password")
-        subbmit_button = self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+        login_button = self.browser.find_element(By.ID, "login_button")
 
         user_name_input.send_keys('Tester')
         user_password_input.send_keys('test')
-        subbmit_button.click()
+        login_button.click()
 
         body_text = self.browser.find_element(By.TAG_NAME, "body").text
         header_h1 = self.browser.find_element(By.TAG_NAME, "h1").text
         self.assertIn('Witaj Tester', body_text)
-        self.assertIn("Horse Owner", header_h1)
+        self.assertIn("Dashboard", header_h1)
         self.assertNotIn("Zaloguj się", body_text)
+        time.sleep(1)
 
+        logout_button = self.browser.find_element(By.ID, "logout_button")
+        logout_button.click()
+        time.sleep(1)
+        body_text = self.browser.find_element(By.TAG_NAME, "body").text
+        header_h1 = self.browser.find_element(By.TAG_NAME, "h1").text
+        self.assertIn("Horse Owner", header_h1)
+        self.assertIn("Zaloguj się", body_text)
+        self.browser.get(self.live_server_url + '/dashboard/')
+        body_text = self.browser.find_element(By.TAG_NAME, "body").text
+        self.assertNotIn('Witaj Tester', body_text)
+        self.assertNotIn("Dashboard", body_text)

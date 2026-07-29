@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.contrib.auth import get_user
 
 # Create your tests here.
 class HomePageTest(TestCase):
@@ -15,7 +16,7 @@ class HomePageTest(TestCase):
         self.assertContains(response, 'Horse Owner')
 
 
-class LoginTest(TestCase):
+class LoginAndLogoutTest(TestCase):
     def setUp(self):
         super().setUp()
 
@@ -32,6 +33,16 @@ class LoginTest(TestCase):
 
         self.assertRedirects(response, '/dashboard/')
 
+    def test_logout_post_redirects_to_home(self):
+        self.client.login(username='Test', password='test')
+        response = self.client.post(reverse('logout'))
+        self.assertRedirects(response, reverse('home'))
+
+    def test_user_is_logged_out_after_redirection(self):
+        self.client.login(username='Test', password='test')
+        self.client.post(reverse('logout'))
+        user = get_user(self.client)
+        self.assertFalse(user.is_authenticated)
 
 class LoggedInTestCase(TestCase):
     def setUp(self):
