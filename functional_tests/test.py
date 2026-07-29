@@ -38,8 +38,8 @@ class BaseLiveServerTestCase(StaticLiveServerTestCase):
 class LoginTest(BaseLiveServerTestCase):
     def test_can_login_with_valid_credentials(self):
         self.browser.get(self.live_server_url + '/accounts/login/')
-        user_name_input = self.browser.find_element(By.NAME, "username")
-        user_password_input = self.browser.find_element(By.NAME, "password")
+        user_name_input = self.browser.find_element(By.ID, "id_username")
+        user_password_input = self.browser.find_element(By.ID, "id_password")
         subbmit_button = self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
 
         user_name_input.send_keys('Tester')

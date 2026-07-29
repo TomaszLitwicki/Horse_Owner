@@ -1,9 +1,12 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
+from django.contrib.auth.decorators import login_required
+
 # Create your views here.
 def home_page (request):
     return render (request, "home.html")
 
-def welcome_user (request):
-    return HttpResponse('<html><title>Horse Owner</title><body><h1>Horse Owner</h1>Witaj Tester :)</body></html>')
+@login_required
+def dashboard_view (request):
+    return render (request, "dashboard.html")
