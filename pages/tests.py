@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user
 
+
 # Create your tests here.
 class HomePageTest(TestCase):
     def test_home_page_status_code(self):
@@ -61,3 +62,50 @@ class DashboardTest(LoggedInTestCase):
         url = reverse('dashboard')
         response = self.client.get(url)
         self.assertContains(response, self.user.username)
+
+
+class RegistrationTest(TestCase):
+    def setUp(self):
+        self.url = reverse('signup')
+
+    def test_registration_page_status_code(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Rejestrowanie - HorseOwner')
+
+    def test_redirect_after_succesfull_created_user(self):
+        response = self.client.post(self.url, {
+            'username': "Tester",
+            'password1': "password",
+            'password2': "password"
+        })
+        self.assertRedirects(response, reverse('login'))
+        self.assertTrue(User.objects.filter(username='Tester').exists())
+        user = User.objects.get(username='Tester')
+        self.assertTrue(user.check_password('password'))
+
+    def test_didnt_match_password(self):
+        response = self.client.post(self.url, {
+            'username': "Tester",
+            'password1': "password1",
+            'password2': "password2"
+        })
+        numbers_of_users = User.objects.count()
+        self.assertEqual(numbers_of_users, 0)
+        self.assertContains(response, 'The two password fields')
+
+    def test_protect_doubled_usernames(self):
+        response = self.client.post(self.url, {
+            'username': "Tester",
+            'password1': "password",
+            'password2': "password"
+        })
+        response = self.client.post(self.url,{
+            'username': 'Tester',
+            'password1': 'password2',
+            'password2': 'password2',
+        })
+        numbers_of_users = User.objects.count()
+        self.assertEqual(numbers_of_users, 1)
+        self.assertContains(response, 'A user with that username already exists')
+
