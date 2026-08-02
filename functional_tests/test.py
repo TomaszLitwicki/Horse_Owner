@@ -33,7 +33,7 @@ class BaseLiveServerTestCase(StaticLiveServerTestCase):
         self.browser = webdriver.Firefox(options=options)
 
     def tearDown(self):
-        self.browser.quit
+        self.browser.quit()
         super().tearDown()
 
 class LoginTest(BaseLiveServerTestCase):
@@ -65,3 +65,46 @@ class LoginTest(BaseLiveServerTestCase):
         body_text = self.browser.find_element(By.TAG_NAME, "body").text
         self.assertNotIn('Witaj Tester', body_text)
         self.assertNotIn("Dashboard", body_text)
+
+class RegisterTest(LiveServerTestCase):
+    def setUp(self):
+        super().setUp()
+        self.browser = webdriver.Firefox()
+
+    def tearDown(self):
+        self.browser.quit()
+        super().tearDown()
+
+    def test_signup(self):
+        self.browser.get(self.live_server_url + '/accounts/registration/')
+        time.sleep(1)
+
+        welcome_text = self.browser.find_element(By.TAG_NAME, "h2").text
+        user_name_input = self.browser.find_element(By.ID, "id_username")
+        user_password1_input = self.browser.find_element(By.ID, "id_password1")
+        user_password2_input = self.browser.find_element(By.ID, "id_password2")
+        registration_button = self.browser.find_element(By.ID, "registration_button")
+
+        self.assertIn('Zarejestruj się w systemie', welcome_text)
+
+        user_name_input.send_keys('Tester')
+        user_password1_input.send_keys('haslo')
+        user_password2_input.send_keys('haslo')
+        registration_button.click()
+
+        self.assertEqual(self.browser.current_url, self.live_server_url + '/accounts/login/')
+
+        user_name_input = self.browser.find_element(By.ID, "id_username")
+        user_password_input = self.browser.find_element(By.ID, "id_password")
+        login_button = self.browser.find_element(By.ID, "login_button")
+
+        user_name_input.send_keys('Tester')
+        user_password_input.send_keys('haslo')
+        login_button.click()
+
+        self.assertEqual(self.browser.current_url, self.live_server_url + '/dashboard/')
+
+        body_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertIn('Witaj Tester', body_text)
+
+        
