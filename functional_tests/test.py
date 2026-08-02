@@ -1,17 +1,70 @@
 from django.test import LiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+# from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.contrib.auth.models import User
 import time
 
-class NewVisitorTest(LiveServerTestCase):
+### PREPARE SERVER AND DATABESES ###
+class StartTests(LiveServerTestCase):
     def setUp(self):
-        self.browser = webdriver.Firefox()
+        super().setUp()
+        options = webdriver.FirefoxOptions()
+        # options.add_argument('--headless')
+        self.browser = webdriver.Firefox(options=options)
 
     def tearDown(self):
         self.browser.quit()
+        super().tearDown()
 
+class CreateUSerInDataBase(StartTests):
+    def setUp(self):
+        super().setUp()
+        self.test_user = User.objects.create_user(
+            username = 'Tester',
+            password = 'test'
+        )
+
+class FoundPageItem:
+    def __init__(self, browser):
+        self.browser = browser
+
+    @property
+    def username_input(self):
+        return self.browser.find_element(By.ID, "id_username")
+
+    @property
+    def password_input(self):
+        return self.browser.find_element(By.ID, "id_password")
+
+    @property
+    def password_inputs(self):
+        password1 = self.browser.find_element(By.ID, "id_password1")
+        password2 = self.browser.find_element(By.ID, "id_password2")
+        return password1, password2
+
+    @property
+    def login_button(self):
+        return self.browser.find_element(By.ID, "login_button")
+
+    @property
+    def logout_button(self):
+        return self.browser.find_element(By.ID, "logout_button")
+
+    @property
+    def registration_button(self):
+        return self.browser.find_element(By.ID, "registration_button")
+
+    @property
+    def body_text(self):
+        return self.browser.find_element(By.TAG_NAME, "body").text
+
+    def find_tag(self, tag):
+        return self.browser.find_element(By.TAG_NAME, tag).text
+
+### TESTS ###
+
+class NewVisitorTest(StartTests):
     def test_visit_home_page(self):
         self.browser.get(self.live_server_url)
         self.assertIn("Horse Owner", self.browser.title)
@@ -19,92 +72,52 @@ class NewVisitorTest(LiveServerTestCase):
         header_h1 = self.browser.find_element(By.TAG_NAME, "h1").text
         self.assertIn("Horse Owner", header_h1)
 
-class BaseLiveServerTestCase(StaticLiveServerTestCase):
-    def setUp(self):
-        super().setUp()
-
-        self.test_user = User.objects.create_user(
-            username = 'Tester',
-            password = 'test'
-        )
-
-        options = webdriver.FirefoxOptions()
-        # options.add_argument('_headless')
-        self.browser = webdriver.Firefox(options=options)
-
-    def tearDown(self):
-        self.browser.quit()
-        super().tearDown()
-
-class LoginTest(BaseLiveServerTestCase):
+class LoginTest(CreateUSerInDataBase):
     def test_can_login_with_valid_credentials(self):
         self.browser.get(self.live_server_url + '/accounts/login/')
-        user_name_input = self.browser.find_element(By.ID, "id_username")
-        user_password_input = self.browser.find_element(By.ID, "id_password")
-        login_button = self.browser.find_element(By.ID, "login_button")
+        time.sleep(1)
+        elements = FoundPageItem(self.browser)
+        
+        elements.username_input.send_keys('Tester')
+        elements.password_input.send_keys('test')
+        elements.login_button.click()
 
-        user_name_input.send_keys('Tester')
-        user_password_input.send_keys('test')
-        login_button.click()
-
-        body_text = self.browser.find_element(By.TAG_NAME, "body").text
-        header_h1 = self.browser.find_element(By.TAG_NAME, "h1").text
-        self.assertIn('Witaj Tester', body_text)
-        self.assertIn("Dashboard", header_h1)
-        self.assertNotIn("Zaloguj się", body_text)
+        self.assertIn('Witaj Tester', elements.body_text)
+        self.assertIn("Dashboard", elements.find_tag('h1'))
+        self.assertNotIn("Zaloguj się", elements.body_text)
         time.sleep(1)
 
-        logout_button = self.browser.find_element(By.ID, "logout_button")
-        logout_button.click()
+        elements.logout_button.click()
         time.sleep(1)
-        body_text = self.browser.find_element(By.TAG_NAME, "body").text
-        header_h1 = self.browser.find_element(By.TAG_NAME, "h1").text
-        self.assertIn("Horse Owner", header_h1)
-        self.assertIn("Zaloguj się", body_text)
+
+        self.assertIn("Horse Owner", elements.find_tag('h1'))
+        self.assertIn("Zaloguj się", elements.body_text)
+
         self.browser.get(self.live_server_url + '/dashboard/')
-        body_text = self.browser.find_element(By.TAG_NAME, "body").text
-        self.assertNotIn('Witaj Tester', body_text)
-        self.assertNotIn("Dashboard", body_text)
+        self.assertNotIn('Witaj Tester', elements.body_text)
+        self.assertNotIn("Dashboard", elements.body_text)
 
-class RegisterTest(LiveServerTestCase):
-    def setUp(self):
-        super().setUp()
-        self.browser = webdriver.Firefox()
-
-    def tearDown(self):
-        self.browser.quit()
-        super().tearDown()
-
+class RegisterTest(StartTests):
     def test_signup(self):
         self.browser.get(self.live_server_url + '/accounts/registration/')
         time.sleep(1)
+        elements = FoundPageItem(self.browser)
+        
+        self.assertIn('Zarejestruj się w systemie', elements.find_tag('h2'))
 
-        welcome_text = self.browser.find_element(By.TAG_NAME, "h2").text
-        user_name_input = self.browser.find_element(By.ID, "id_username")
-        user_password1_input = self.browser.find_element(By.ID, "id_password1")
-        user_password2_input = self.browser.find_element(By.ID, "id_password2")
-        registration_button = self.browser.find_element(By.ID, "registration_button")
-
-        self.assertIn('Zarejestruj się w systemie', welcome_text)
-
-        user_name_input.send_keys('Tester')
-        user_password1_input.send_keys('haslo')
-        user_password2_input.send_keys('haslo')
-        registration_button.click()
+        elements.username_input.send_keys('Tester')
+        elements.password_inputs[0].send_keys('haslo')
+        elements.password_inputs[1].send_keys('haslo')
+        elements.registration_button.click()
 
         self.assertEqual(self.browser.current_url, self.live_server_url + '/accounts/login/')
 
-        user_name_input = self.browser.find_element(By.ID, "id_username")
-        user_password_input = self.browser.find_element(By.ID, "id_password")
-        login_button = self.browser.find_element(By.ID, "login_button")
-
-        user_name_input.send_keys('Tester')
-        user_password_input.send_keys('haslo')
-        login_button.click()
+        elements.username_input.send_keys('Tester')
+        elements.password_input.send_keys('haslo')
+        elements.login_button.click()
 
         self.assertEqual(self.browser.current_url, self.live_server_url + '/dashboard/')
 
-        body_text = self.browser.find_element(By.TAG_NAME, 'body').text
-        self.assertIn('Witaj Tester', body_text)
+        self.assertIn('Witaj Tester', elements.body_text)
 
         
