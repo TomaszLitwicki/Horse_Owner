@@ -54,6 +54,7 @@ ENV/
 .env.*.local
 .secrets
 .jwt_secret
+!.env.example
 
 # ==========================================
 # TESTING & CODE QUALITY
@@ -91,3 +92,4 @@ Thumbs.db
 # ==========================================
 To-Do.md
 scratch/
+*.zip

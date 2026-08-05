@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from django.contrib.auth.models import User
 import time
 
-### PREPARE SERVER AND DATABESES ###
+### PREPARE SERVER AND DATABASES ###
 class StartTests(LiveServerTestCase):
     def setUp(self):
         super().setUp()
@@ -17,7 +17,7 @@ class StartTests(LiveServerTestCase):
         self.browser.quit()
         super().tearDown()
 
-class CreateUSerInDataBase(StartTests):
+class CreateUrerInDatabase(StartTests):
     def setUp(self):
         super().setUp()
         self.test_user = User.objects.create_user(
@@ -72,7 +72,7 @@ class NewVisitorTest(StartTests):
         header_h1 = self.browser.find_element(By.TAG_NAME, "h1").text
         self.assertIn("Horse Owner", header_h1)
 
-class LoginTest(CreateUSerInDataBase):
+class LoginTest(CreateUrerInDatabase):
     def test_can_login_with_valid_credentials(self):
         self.browser.get(self.live_server_url + '/accounts/login/')
         time.sleep(1)
